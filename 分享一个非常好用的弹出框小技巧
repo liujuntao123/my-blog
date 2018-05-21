@@ -1,0 +1,174 @@
+相信大家或多或少都会见到这样的需求:
+
+![Paste_Image.png](http://upload-images.jianshu.io/upload_images/4050018-ed005bed05353f8c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+如图所示，点击按钮弹出下面的弹出框，点击空白处或者关闭按钮弹出框就会关闭，但同时点击弹出框的里面的其他部分，不会使弹出框关闭。
+好，我们按步骤来一步步实现，这里引入jQuery方便DOM操作。
+### 1、实现点击按钮弹框弹出
+这个很容易办到，就不多废话了，直接上代码:
+```
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    #pop_box {
+      border: 1px solid #000;
+      background-color: #bce;
+      width: 300px;
+      height: 300px;
+    }
+    
+    #pop_box.hide {
+      display: none;
+    }
+
+    #btn_close{
+      background: #71d7d0;
+      border-radius: 5px;
+      display: block;
+      padding: 10px;
+      width: 100px;
+      margin: 0 auto;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <button type="" id="btn_open">点我弹出</button>
+  <div id="pop_box" class="hide">
+    <p>我是一个弹出框</p>
+
+    <button>一个无聊的按钮</button><br><br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a id="btn_close" href="javascript:;">
+      <span>关闭弹出框</span>
+    </a>
+  </div>
+
+  <script src="jquery-3.2.0.js"></script>
+  <script>
+    $('#btn_open').click((e) => {
+      $('#pop_box').removeClass('hide')
+      e.stopPropagation()
+    })
+
+  </script>
+</body>
+
+</html>
+```
+### 2、实现点击空白处弹框隐藏
+这个时候，问题就来了，一般的思路肯定是给document绑定一个点击事件，然后传入event参数，判断event.target的元素是不是弹出框里面的元素。但是很明显，弹出框里面包含的可不是一个元素，弹出框里面包含了多个子元素，用普通的直接判定event.target的方式肯定是不行的了。
+那么怎么办呢，接下来就要介绍两个jQuery库里非常好用的函数了
+一、 .is() 函数。它的用法总共有四种，这里就不一一介绍了，只介绍现在用到的一种:
+.is(jQuery Object) 
+它传入的是一个jQuery对象，返回的是一个布尔值，用以判断当前对象与参数里的jQuery对象是否是同一个对象。
+二、.has()函数。如果说.is()函数的作用一般般的话，那么这个.has()函数就厉害了。它的厉害之处就是可以方便的检查一个元素是否在另一个元素之内：
+.has(jQuery Object)
+需要注意的是，传入的参数是父元素，前面的对象是子元素。它返回的是一个包含jQuery对象的类数组对象，具有length属性，我们刚好可以利用这个length属性。当当前对象不属于传入的对象的时候，这个length就为0。
+那么，利用这两个jquery函数，我们的代码就可以这么写：
+```
+$(document).click((e) => {
+      var box = $('#pop_box'),
+            btn_close = $('#btn_close')
+      e.stopPropagation
+      console.log(box.has(e.target).length)
+      if (!box.is(e.target) && box.has(e.target).length == 0) {
+        $('#pop_box').addClass('hide')
+      }
+    })
+```
+这样，就可以实现点击空白处弹出框隐藏的功能了。
+最后，将上面代码改进，实现点击隐藏按钮，也能隐藏弹出框的功能:
+```
+$(document).click((e) => {
+      var box = $('#pop_box'),
+        btn_close = $('#btn_close')
+      e.stopPropagation
+      console.log(box.has(e.target).length)
+      if (!box.is(e.target) && box.has(e.target).length == 0 || btn_close.is(e.target) || btn_close.has(e.target).length > 0) {
+        $('#pop_box').addClass('hide')
+      }
+    })
+```
+这样，一个基本的弹出框的功能就大功告成了，下面贴出所有代码:
+```
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    #pop_box {
+      border: 1px solid #000;
+      background-color: #bce;
+      width: 300px;
+      height: 300px;
+    }
+    
+    #pop_box.hide {
+      display: none;
+    }
+
+    #btn_close{
+      background: #71d7d0;
+      border-radius: 5px;
+      display: block;
+      padding: 10px;
+      width: 100px;
+      margin: 0 auto;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <button type="" id="btn_open">点我弹出</button>
+  <div id="pop_box" class="hide">
+    <p>我是一个弹出框</p>
+
+    <button>一个无聊的按钮</button><br><br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a id="btn_close" href="javascript:;">
+      <span>关闭弹出框</span>
+    </a>
+  </div>
+
+  <script src="jquery-3.2.0.js"></script>
+  <script>
+    $('#btn_open').click((e) => {
+      $('#pop_box').removeClass('hide')
+      e.stopPropagation()
+    })
+
+
+    $(document).click((e) => {
+      var box = $('#pop_box'),
+        btn_close = $('#btn_close')
+      e.stopPropagation
+      console.log(box.has(e.target).length)
+      if (!box.is(e.target) && box.has(e.target).length == 0 || btn_close.is(e.target) || btn_close.has(e.target).length > 0) {
+        $('#pop_box').addClass('hide')
+      }
+    })
+  </script>
+</body>
+
+</html>
+```
+如果大家有更好的方法实现此功能，请不吝赐教在评论区留言！
