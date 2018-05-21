@@ -1,0 +1,285 @@
+最近工作稍微得了一些空闲，正好利用起来，把阮一峰老师的《ECMAScript6入门》通读了一遍。其实早就在使用ES6了，但一直以来，对ES6却没有一个完整系统的理解。读完书之后有种茅塞顿开的感觉，很多之前都不是很明晰的地方都豁然开朗。期间做了一些笔记，主要是记录了一些ES6的基本必备知识，以及一些常用、好用、实用的ES6技巧。在此分享给大家一起交流学习。
+### ECMAScript6简介
+##### ECMAScript 和 JavaScript 到底是什么关系？
+简而言之，ECMAScript是javascript的规格标准。个人理解为，JavaScript更多的是指代对一个编程语言的称谓，而JavaScript这门语言是不断成长的。ECMA组织负责不断的完善它，给它添加新的扩展，指定新的标准。所有扩展和标准，就包含在ECMACScript里。
+##### Babel转码器
+Babel 是一个广泛使用的 ES6 转码器，可以将 ES6 代码转为 ES5 代码，从而在现有环境执行。这意味着，你可以用 ES6 的方式编写程序，又不用担心现有环境是否支持。
+### let和const命令
+#### let
+let命令是什么？一言以蔽之：var 期望有的功能let全部有，var具有缺陷的地方，let已修复。
+let声明的变量，只在块级作用域内生效，块级作用域可以简单地理解为大括号{}里的区域。
+let和var的区别如下：
+```
+{
+  let a = 10;
+  var b = 1;
+}
+
+a // ReferenceError: a is not defined.
+b // 1
+```
+因此，很容易想到let的应用场合。
+##### 1、for循环
+```
+for (let i = 0; i < 10; i++) {}
+
+console.log(i);
+//ReferenceError: i is not defined
+```
+```
+var a = [];
+for (var i = 0; i < 10; i++) {
+  a[i] = function () {
+    console.log(i);
+  };
+}
+a[6](); // 10
+```
+**注意:**
+
+for循环有一个特别之处，就是循环语句部分是一个父作用域，而循环体内部是一个单独的子作用域。
+```
+for (let i = 0; i < 3; i++) {
+  let i = 'abc';
+  console.log(i);
+}
+// abc
+// abc
+// abc
+```
+
+##### 2、变量提升(声明提前)
+众所周知，var变量会有“声明提前”的现象，即变量可以在声明之前使用，值为undefined。显然，这是很不合理的，会给开发造成很多不必要的混乱。
+let命令纠正了var命令的这一现象，它所声明的变量一定要在声明后使用，否则报错。
+```
+// var 的情况
+console.log(foo); // 输出undefined
+var foo = 2;
+
+// let 的情况
+console.log(bar); // 报错ReferenceError
+let bar = 2;
+```
+
+##### 3、重复声明
+在开发的过程中，特别是代码过长的话，很容易忘记了前面的声明的变量，对同一个变量重复声明。但是，这样并不会报错，而是会引发代码的逻辑出错，可能还不容易找出错误原因。
+let很好的解决了这一点，let不允许在相同作用域内，重复声明同一个变量。
+```
+// 报错
+function () {
+  let a = 10;
+  var a = 1;
+}
+
+// 报错
+function () {
+  var a = 10;
+  let a = 1;
+}
+
+// 报错
+function () {
+  let a = 10;
+  let a = 1;
+}
+```
+也不能在函数内部再次声明参数，以为函数的参数相当于已经进行过了声明。
+```
+function func(arg) {
+  let arg; // 报错
+}
+
+function func(arg) {
+  {
+    let arg; // 不报错
+  }
+}
+```
+#### const
+const声明一个只读的常量。一旦声明，常量的值就不能改变。
+在此之前，js基本是没有直接手段来保证一个变量不被修改的，只能通过类似闭包等间接的手段来实现。
+ES6终于有了，声明一个不想被改动的变量，就使用const。
+#### ES6的六种声明变量的方法
+ES5 只有两种声明变量的方法：var、function。
+ES6总共有6种：var、function、let、const、import、class。
+### 变量的解构赋值
+结构赋值有数组结构的结构赋值和对象形式的结构赋值。
+#### 数组结构
+数组结构看实例就能理解
+```
+//普通模式
+let [a, b, c] = [1, 2, 3];
+
+//嵌套结构
+let [foo, [[bar], baz]] = [1, [[2], 3]];
+foo // 1
+bar // 2
+baz // 3
+
+//空位模式
+let [ , , third] = ["foo", "bar", "baz"];
+third // "baz"
+
+//空位模式
+let [x, , y] = [1, 2, 3];
+x // 1
+y // 3
+
+//解构
+let [head, ...tail] = [1, 2, 3, 4];
+head // 1
+tail // [2, 3, 4]
+
+//解构
+let [x, y, ...z] = ['a'];
+x // "a"
+y // undefined
+z // []
+
+//不完全解构
+let [foo] = [];
+foo // undefined
+let [bar, foo] = [1];
+bar // 1
+foo // fundefined
+
+//报错
+let [foo] = 1;
+let [foo] = false;
+let [foo] = NaN;
+let [foo] = undefined;
+let [foo] = null;
+let [foo] = {};
+
+//指定默认值
+let [foo = true] = [];
+foo // true
+let [x, y = 'b'] = ['a']; // x='a', y='b'
+let [x, y = 'b'] = ['a', undefined]; // x='a', y='b'
+```
+#### 对象解构赋值
+```
+// 变量名与属性值一致
+let { bar, foo } = { foo: "aaa", bar: "bbb" };
+foo // "aaa"
+bar // "bbb"
+
+let { baz } = { foo: "aaa", bar: "bbb" };
+baz // undefined
+
+//变量名和属性值不一致
+var { foo: baz } = { foo: 'aaa', bar: 'bbb' };
+baz // "aaa"
+
+let obj = { first: 'hello', last: 'world' };
+let { first: f, last: l } = obj;
+f // 'hello'
+l // 'world'
+
+//嵌套赋值
+let obj = {};
+let arr = [];
+
+({ foo: obj.prop, bar: arr[0] } = { foo: 123, bar: true });
+
+obj // {prop:123}
+arr // [true]
+
+//指定默认值
+var {x = 3} = {};
+x // 3
+
+var {x, y = 5} = {x: 1};
+x // 1
+y // 5
+
+var {x:y = 3} = {};
+y // 3
+
+var {x:y = 3} = {x: 5};
+y // 5
+
+var { message: msg = 'Something went wrong' } = {};
+msg // "Something went wrong"
+
+// 报错
+let {foo: {bar}} = {baz: 'baz'};
+```
+**实用用法:**
+
+1、用于Math对象方法简写
+```
+let{log,sin,cos}=Math
+```
+2、用于react状态简写
+```
+const{state_a,state_b,state_c}=this.state
+const{props_a,props_b,props_c}=this.props
+```
+3、用于输入模块的指定方法
+```
+const { SourceMapConsumer, SourceNode } = require("source-map");
+```
+
+#### 字符串的解构赋值
+```
+//常规解构赋值
+const [a, b, c, d, e] = 'hello';
+a // "h"
+b // "e"
+c // "l"
+d // "l"
+e // "o"
+
+//length属性
+let {length : len} = 'hello';
+len // 5
+```
+
+#### 函数参数的解构赋值
+```
+function add([x, y]){
+  return x + y;
+}
+
+add([1, 2]); // 3
+
+[[1, 2], [3, 4]].map(([a, b]) => a + b);
+// [ 3, 7 ]
+
+//使用默认值
+function move({x = 0, y = 0} = {}) {
+  return [x, y];
+}
+
+move({x: 3, y: 8}); // [3, 8]
+move({x: 3}); // [3, 0]
+move({}); // [0, 0]
+move(); // [0, 0]
+```
+**实用用法：**
+
+1、可以将参数和变量名对应起来，不用再关注参数顺序
+```
+// 参数是一组有次序的值
+function f([x, y, z]) { ... }
+f([1, 2, 3]);
+
+// 参数是一组无次序的值
+function f({x, y, z}) { ... }
+f({z: 3, y: 2, x: 1});
+```
+2、设置函数默认参数
+```
+jQuery.ajax = function (url, {
+  async = true,
+  beforeSend = function () {},
+  cache = true,
+  complete = function () {},
+  crossDomain = false,
+  global = true,
+  // ... more config
+}) {
+  // ... do stuff
+};
+```
